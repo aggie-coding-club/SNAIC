@@ -1,0 +1,24 @@
+#:kivy 2.3.0
+
+<ScanScreen>:
+    button: button
+
+    BoxLayout:
+        orientation: "vertical"
+
+        Label:
+            text: "Show camera feed"
+            size_hint: 1, 0.75
+
+        Button:
+            text: "Scan"
+            size_hint: 1, 0.25
+            font_size: self.width / 20
+            id: button
+
+<LoadingScreen>:
+    BoxLayout:
+        orientation: "horizontal"
+
+        Label:
+            text: "Loading..."
