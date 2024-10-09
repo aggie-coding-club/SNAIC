@@ -1,36 +1,146 @@
 #:kivy 2.3.0
 
-<ScanScreen>:
+ScreenManager:
+    Scan:
+    Load:
+    ProductsList:
+
+<Scan@Screen>:
+    name: "scan"
     button: button
 
     BoxLayout:
         orientation: "vertical"
 
-        Label:
-            text: "Show camera feed"
-            size_hint: 1, 0.75
+        # MDLabel:
+        #     text: "camera feed"
+        #     size_hint: 1, 0.75
+        #     halign: "center"
 
-        Button:
+        MDRaisedButton:
             text: "Scan"
             size_hint: 1, 0.25
             font_size: self.width / 20
             id: button
+            on_release:
+                app.root.current = "products"
+                root.manager.transition.direction = "left"
 
-<LoadingScreen>:
+<Load@Screen>:
+    name: "load"
+
+    on_enter:
+        import time
+        time.sleep(1)
+        app.root.current = "products"
+        root.manager.transition.direction = "left"
+
     BoxLayout:
         orientation: "horizontal"
 
-        Label:
+        MDLabel:
             text: "Loading..."
+            halign: "center"
 
-<ProductListScreen>:
-    ScrollView:
-        do_scroll_x: False
-        do_scroll_y: True
+<ProductsList@Screen>:
+    name: "products"
+    container: container
+    loading: loading
 
-        Label:
-            size_hint_y: None
-            height: self.texture_size[1]
-            text_size: self.width, None
-            padding: 10, 10
-            text: "Really cool product:\n" * 100
+    MDSpinner:
+        size_hint: None, None
+        size: dp(46), dp(46)
+        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+        active: root.loading_active
+        id: loading
+
+    # MDIcon:
+    #     id: loading
+    #     icon: "loading"
+    #     pos_hint: {"center_x": .5, "center_y": .5}
+
+    MDScrollView:
+        MDList:
+            id: container
+
+# <-LabelWithBorder@Label>:
+#     border_width: 0
+#     border_color: [1, 1, 1, 1]
+
+#     canvas.before:
+#         Color:
+#             rgba: root.border_color if root.border_width > 0 else [0, 0, 0, 1]
+#         Rectangle:
+#             size: self.size
+#             pos: self.pos
+#         Color:
+#             rgba: 0, 0, 0, 1
+#         Rectangle:
+#             size: self.width - 2 * root.border_width, self.height - 2 * root.border_width
+
+#     canvas:
+#         Color:
+#             rgba: 1, 1, 1, 1
+#         Rectangle:
+#             texture: self.texture
+#             size: self.texture_size[0] - 2 * root.border_width, self.texture_size[1] - 2*root.border_width
+#             pos: int(self.center_x - self.width/2.) + root.border_width, int(self.center_y - self.height/2.) + root.border_width
+
+# # <LabelWithBorder>:
+# #     label: label
+# #     size: label.size
+
+# #     Label:
+# #         id: label
+
+# #         canvas.before:
+# #             Color:
+# #                 rgba: 1, 1, 1, 1
+# #             BorderImage:
+# #                 source: "gui/shadow32.png"
+# #                 border: (36, 36, 36, 36),
+# #                 size: (self.width + 72, self.height + 72)
+# #                 pos: (-36, -36)
+
+    
+
+# <ScanScreen>:
+#     button: button
+
+#     BoxLayout:
+#         orientation: "vertical"
+
+#         Label:
+#             text: "Show camera feed"
+#             size_hint: 1, 0.75
+
+#         Button:
+#             text: "Scan"
+#             size_hint: 1, 0.25
+#             font_size: self.width / 20
+#             id: button
+
+# <LoadingScreen>:
+#     BoxLayout:
+#         orientation: "horizontal"
+
+#         Label:
+#             text: "Loading..."
+
+# <ProductListScreen>:
+#     products_list: products_list
+
+#     ScrollView:
+#         do_scroll_x: False
+#         do_scroll_y: True
+
+#         GridLayout:
+#             cols: 1
+#             id: products_list
+
+#             # Label:
+#             #     size_hint_y: None
+#             #     height: self.texture_size[1]
+#             #     text_size: self.width, None
+#             #     padding: 10, 10
+#             #     text: "Really cool product:\n" * 100
