@@ -1,9 +1,12 @@
 import requests
-import keys
+import dotenv
+import os
 
-CLIENT_ID = keys.imgur_key
+dotenv.load_dotenv()
 
-image_path = '/Users/aarya/Documents/SNAIC/scooter.jpg'
+CLIENT_ID = os.getenv('IMGUR_KEY')
+
+image_path = 'imgs/bag.jpg'
 
 with open(image_path, 'rb') as img:
     image_data = img.read()
