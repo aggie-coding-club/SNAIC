@@ -1,0 +1,4 @@
+requests
+python-dotenv
+serpapi
+google-search-results
