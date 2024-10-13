@@ -2,6 +2,7 @@
 
 ScreenManager:
     Scan:
+    CamTab:
     Load:
     ProductsList:
 
@@ -23,7 +24,7 @@ ScreenManager:
             font_size: self.width / 20
             id: button
             on_release:
-                app.root.current = "products"
+                app.root.current = "cam_tab"
                 root.manager.transition.direction = "left"
 
 <Load@Screen>:
@@ -41,6 +42,24 @@ ScreenManager:
         MDLabel:
             text: "Loading..."
             halign: "center"
+
+<CamTab@Screen>:
+    name: "cam_tab"
+    BoxLayout:
+        orientation: "vertical"
+        Camera:
+            id: mycamera
+            resolution: (640, 480)
+            play: True  # Starts the camera feed automatically
+        Button:
+            text: "Scan Product"
+            size_hint: .2, .1
+            pos_hint: {"center_x": .5}
+            on_release:
+                app.root.current = "products"
+                root.manager.transition.direction = "left"
+    
+    
 
 <ProductsList@Screen>:
     name: "products"
