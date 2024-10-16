@@ -45,12 +45,17 @@ ScreenManager:
 
 <CamTab@Screen>:
     name: "cam_tab"
+    show_camera: show_camera
+
     BoxLayout:
         orientation: "vertical"
-        Camera:
-            id: mycamera
-            resolution: (640, 480)
-            play: True  # Starts the camera feed automatically
+        # Camera:
+        #     id: mycamera
+        #     resolution: (640, 480)
+        #     play: True  # Starts the camera feed automatically
+        Image:
+            id: show_camera
+            size: (640, 480)
         Button:
             text: "Scan Product"
             size_hint: .2, .1

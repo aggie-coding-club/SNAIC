@@ -5,6 +5,8 @@ import time
 import threading
 import cv2
 
+from sys import platform
+
 from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.button import MDTextButton
@@ -18,12 +20,15 @@ from kivy.factory import Factory
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
 from kivy.uix.anchorlayout import AnchorLayout
+from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.label import Label
+from kivy.uix.image import Image
 from kivy.uix.camera import Camera
 from kivy.config import Config
 from kivy.base import Builder
+from kivy.graphics.texture import Texture
 from kivy.properties import ListProperty, NumericProperty, BooleanProperty
 
 # https://stackoverflow.com/questions/37749378/integrate-opencv-webcam-into-a-kivy-user-interface
@@ -36,23 +41,33 @@ def camera_available():
     
     return available
 
-class Scan(Screen):
+FRAMERATE = 33.0
+
+class CamTab(Screen):
     def on_enter(self, *args):
-        # if camera_available():
-        #     self.add_widget(Camera(
-        #         resolution=(1920, 1080),
-        #         play=False,
-        #         size_hint=(1, 0.75),
-        #         index=0
-        #     ))
-        # else:
-        #     self.add_widget(MDLabel(
-        #         text="No camera detected",
-        #         size_hint=(1, 0.75),
-        #         halign="center"
-        #     ))
+        # Setup capture
+        self.capture = cv2.VideoCapture(0)
+        cv2.namedWindow("CV2 Image")
+        Clock.schedule_interval(self.update, 1.0 / FRAMERATE)
 
         return super().on_enter(*args)
+    
+    def update(self, *args):
+        ret, frame = self.capture.read()
+        # cv2.imshow("CV2 Image", frame)
+
+        buf1 = cv2.flip(frame, 0)
+        buf = buf1.tostring()
+        texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
+        # On the PI, colorfmt="rgba"
+        if platform == "win32":
+            texture1.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
+        elif platform == "linux":
+            texture1.blit_buffer(buf, colorfmt="rgba", bufferfmt="ubyte")
+        else:
+            print(f"unrecognized operating system: {platform}")
+        self.show_camera.texture = texture1
+
 
 def sample_get_products():
     time.sleep(1)
