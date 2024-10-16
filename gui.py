@@ -55,6 +55,7 @@ class CamTab(Screen):
     
     def update(self, *args):
         ret, frame = self.capture.read()
+        print(str(frame))
         # cv2.imshow("CV2 Image", frame)
 
         buf1 = cv2.flip(frame, 0)
