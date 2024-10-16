@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 from segment_anything import sam_model_registry, SamPredictor
 from segment_anything.utils.onnx import SamOnnxModel
 import warnings
+import requests
+
 
 import onnxruntime
 from onnxruntime.quantization import QuantType
@@ -26,11 +28,19 @@ def show_box(box, ax):
     w, h = box[2] - box[0], box[3] - box[1]
     ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor='green', facecolor=(0,0,0,0), lw=2)) 
 
+
+
+
 checkpoint = "sam_vit_h_4b8939.pth"
 model_type = "vit_h"
-sam = sam_model_registry[model_type](checkpoint=checkpoint)
 
-
+try:
+    sam = sam_model_registry[model_type](checkpoint=checkpoint)
+except:
+    url = "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth"
+    r = requests.get(url, allow_redirects=True)
+    open("sam_vit_h_4b8939.pth","wb").write(r.content)
+    sam = sam_model_registry[model_type](checkpoint=checkpoint)
 
 onnx_model_path = "sam_onnx_example.onnx"
 
@@ -152,6 +162,7 @@ plt.axis('off')
 plt.show() 
 
 # Creates a box, and uses a point in the box -- edit this for each image.
+#                        (x1,y1,x2,y2)
 input_box = np.array([425, 600, 700, 875])
 input_point = np.array([[575, 750]])
 input_label = np.array([0])
