@@ -54,9 +54,8 @@ class CamTab(Screen):
         return super().on_enter(*args)
     
     def update(self, *args):
-        ret, frame = self.capture.read()
-        print(str(frame))
-        # cv2.imshow("CV2 Image", frame)
+        success, frame = self.capture.read()
+        print("Read frame: ", success)
 
         buf1 = cv2.flip(frame, 0)
         buf = buf1.tostring()
