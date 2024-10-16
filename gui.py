@@ -46,6 +46,7 @@ FRAMERATE = 33.0
 class CamTab(Screen):
     def on_enter(self, *args):
         # Setup capture
+        print("Camera available: ", camera_available())
         self.capture = cv2.VideoCapture(0)
         cv2.namedWindow("CV2 Image")
         Clock.schedule_interval(self.update, 1.0 / FRAMERATE)
