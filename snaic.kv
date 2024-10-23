@@ -56,6 +56,7 @@ ScreenManager:
         Image:
             id: show_camera
             size: (640, 480)
+            on_touch_down: root.image_press(*args)
         Button:
             text: "Scan Product"
             size_hint: .2, .1

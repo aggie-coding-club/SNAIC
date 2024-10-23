@@ -71,6 +71,12 @@ class CamTab(Screen):
         # texture1 = cv2.rotate(texture1, cv2.ROTATE_180)
         self.show_camera.texture = texture1
 
+    def image_press(*args):
+        if args.mouse.grab_current != None:
+            print("touch")
+
+        return True
+
 
 def sample_get_products():
     time.sleep(1)
