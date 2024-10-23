@@ -43,6 +43,7 @@ def camera_available():
 
 FRAMERATE = 33.0
 
+# Screen that shows the camera feed + scan button
 class CamTab(Screen):
     def on_enter(self, *args):
         # Setup capture
@@ -55,9 +56,9 @@ class CamTab(Screen):
     
     def update(self, *args):
         success, frame = self.capture.read()
-        print("Read frame: ", success)
+        # print("Read frame: ", success)
 
-        buf1 = cv2.flip(frame, 0)
+        buf1 = frame # cv2.rotate(frame, cv2.ROTATE_180)
         buf = buf1.tostring()
         texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
         # On the PI, colorfmt="rgba"
@@ -67,6 +68,7 @@ class CamTab(Screen):
             texture1.blit_buffer(buf, colorfmt="rgba", bufferfmt="ubyte")
         else:
             print(f"unrecognized operating system: {platform}")
+        # texture1 = cv2.rotate(texture1, cv2.ROTATE_180)
         self.show_camera.texture = texture1
 
 
