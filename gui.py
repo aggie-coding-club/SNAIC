@@ -4,6 +4,7 @@ kivy.require("2.3.0")
 import time
 import threading
 import cv2
+import math
 
 from sys import platform
 
@@ -45,6 +46,8 @@ FRAMERATE = 33.0
 
 # Screen that shows the camera feed + scan button
 class CamTab(Screen):
+    double_touch = False
+
     def on_enter(self, *args):
         # Setup capture
         print("Camera available: ", camera_available())
@@ -73,13 +76,16 @@ class CamTab(Screen):
 
     def image_press(self, *args):
         # TODO: See if the bottom of the image should report 0.1 or 0
-        if self.show_camera.collide_point(*args[1].pos):
-            x = args[1].spos[0]
-            y = args[1].spos[1]
+        if self.show_camera.collide_point(*args[1].pos) and not self.double_touch:
+            x = math.floor(args[1].spos[0] * 640)
+            y = math.floor(args[1].spos[1] * 480)
             print(f"Image touched: x: {x}, y: {y}")
+            
+        self.double_touch = not self.double_touch
+
+            # TODO: Here is where the ML function would be called
 
         return True
-
 
 def sample_get_products():
     time.sleep(1)
