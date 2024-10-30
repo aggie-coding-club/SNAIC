@@ -71,9 +71,12 @@ class CamTab(Screen):
         # texture1 = cv2.rotate(texture1, cv2.ROTATE_180)
         self.show_camera.texture = texture1
 
-    def image_press(*args):
-        if args.mouse.grab_current != None:
-            print("touch")
+    def image_press(self, *args):
+        # TODO: See if the bottom of the image should report 0.1 or 0
+        if self.show_camera.collide_point(*args[1].pos):
+            x = args[1].spos[0]
+            y = args[1].spos[1]
+            print(f"Image touched: x: {x}, y: {y}")
 
         return True
 
