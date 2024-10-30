@@ -87,7 +87,7 @@ with warnings.catch_warnings():
 # Upload image to folder, and change name below.
 # Also make sure to update np.array values to make sense with your image.
 
-image = cv2.imread('dogsample.jpg')
+image = cv2.imread('scooter.jpg')
 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 plt.figure(figsize=(10,10))
 plt.imshow(image)
