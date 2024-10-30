@@ -44,6 +44,9 @@ def camera_available():
 
 FRAMERATE = 33.0
 
+products = []
+ml_thread = None
+
 # Screen that shows the camera feed + scan button
 class CamTab(Screen):
     double_touch = False
@@ -75,22 +78,33 @@ class CamTab(Screen):
         self.show_camera.texture = texture1
 
     def image_press(self, *args):
+        global ml_thread
+
         # TODO: See if the bottom of the image should report 0.1 or 0
         if self.show_camera.collide_point(*args[1].pos) and not self.double_touch:
             x = math.floor(args[1].spos[0] * 640)
             y = math.floor(args[1].spos[1] * 480)
             print(f"Image touched: x: {x}, y: {y}")
-            
+            self.manager.current = "products"
+
+            ml_thread = threading.Thread(target=sample_get_products)
+            ml_thread.start()
+
+    # app.root.current = "products"
+    #             root.manager.transition.direction = "left"
+
         self.double_touch = not self.double_touch
 
-            # TODO: Here is where the ML function would be called
+        # TODO: Here is where the ML function would be called
 
         return True
 
 def sample_get_products():
-    time.sleep(1)
+    global products
+    print("start loading")
+    time.sleep(5)
 
-    return [
+    products = [
         "Product 1", 
         "Product 2", 
         "Product 3", 
@@ -99,44 +113,24 @@ def sample_get_products():
         "Product 6" 
     ]
 
-loaded_products = threading.Condition()
-
 class ProductsList(Screen):
     loading_active = BooleanProperty(True)
-    loading_thread = None
-    products = [
-        "Product 1", 
-        "Product 2", 
-        "Product 3", 
-        "Product 4", 
-        "Product 5", 
-        "Product 6"
-    ]
+    has_loaded = False
 
-    def load_products(self):
-        loaded_products.acquire()
-        products = sample_get_products()
-        loaded_products.notify_all()
+    def update(self, *args):
+        if not self.has_loaded and ml_thread is not None and not ml_thread.is_alive():
+            self.has_loaded = True
+            self.loaded()
 
-        # self.loading_active = False
-
+    def loaded(self):
         # self.ids.loading.active = False
-        # for product in products:
-        #     list_item = OneLineListItem(text=f"{product}")
-
-        #     self.ids.container.add_widget(list_item)
-
-        print("done")
-
-    def on_enter(self, *args):
-        # self.loading_thread = threading.Thread(target=self.load_products)
-
-        self.loading_active = False
-        # self.ids.loading.active = False
-        for product in self.products:
+        for product in products:
             list_item = OneLineListItem(text=f"{product}")
 
             self.ids.container.add_widget(list_item)
+
+    def on_enter(self, *args):
+        Clock.schedule_interval(self.update, 0.1)
 
         return super().on_enter(*args)
 
