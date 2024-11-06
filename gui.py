@@ -9,7 +9,7 @@ import cv2
 from sys import platform
 
 if platform == "linux":
-    import picamera
+    import picamera2
 
 from kivymd.app import MDApp
 from kivymd.uix.list import (
@@ -46,7 +46,7 @@ class CamTab(Screen):
             self.capture = cv2.VideoCapture(0)
             cv2.namedWindow("CV2 Image")
         elif platform == "linux":
-            self.capture = picamera.Picamera2()
+            self.capture = picamera2.Picamera2()
             self.capture.configure(
                 self.capture.create_video_configuration(main={"format": "RGB8888", "size": (640, 480)})
             )
