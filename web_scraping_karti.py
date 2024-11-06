@@ -1,15 +1,8 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Oct 30 17:15:34 2024
-
-@author: dconl
-"""
-
 import os
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.chrome.options import Options
 
 # Set Firefox options
 options = Options()
@@ -19,7 +12,7 @@ options.headless = True  # Run in headless mode (without opening a browser windo
 driver = webdriver.Chrome(options=options)
 
 # Define the path to your local image
-IMAGE_PATH = "scooter.jpg"  # Change this to the path of your local image
+IMAGE_PATH = "bag.jpg"  # Change this to the path of your local image
 
 # Step 1: Navigate to Google Lens
 driver.get("https://lens.google.com/")
@@ -50,6 +43,8 @@ try:
 except Exception as e:
     print(f"Error during interaction: {str(e)}")
 
+driver.quit()
+
 print("Search complete.")
 
 driver = webdriver.Chrome(options=options)
@@ -61,5 +56,7 @@ price_whole = driver.find_element(By.CLASS_NAME, "a-price-whole").text
 price_fraction = driver.find_element(By.CLASS_NAME, "a-price-fraction").text
 product_name = driver.find_element(By.ID, "productTitle").text
 
-print(f"{product_name}: ${price_whole}.{price_fraction}")
+driver.quit()
 
+print(f"{product_name}: ${price_whole}.{price_fraction}")
+print("Buy here: ", amazon_links[0])
