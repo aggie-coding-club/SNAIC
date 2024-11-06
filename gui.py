@@ -69,8 +69,8 @@ class CamTab(Screen):
             texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
             texture1.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
         elif platform == "linux":
-            texture1 = Texture.create(size=(640, 480), colorfmt="rgb")
-            texture1.blit_buffer(buf, colorfmt="rgb", bufferfmt="ubyte")
+            texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
+            texture1.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
         else:
             print(f"unrecognized operating system: {platform}")
         # texture1 = cv2.rotate(texture1, cv2.ROTATE_180)
