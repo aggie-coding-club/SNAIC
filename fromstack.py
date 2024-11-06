@@ -12,7 +12,6 @@ cam.start()
 
 while True:
         frame = cam.capture_array()
-        cv2.circle(frame, middle, 10, (255, 0 , 255), -1)
         cv2.imshow('f', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
