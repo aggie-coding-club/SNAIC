@@ -1,115 +1,92 @@
 import cv2
-import datetime
-import os
-from pathlib import Path
-from picamera2 import Picamera2
 import time
+import numpy as np
+from datetime import datetime
 
-class PiVideoRecorder:
-    def __init__(self, output_dir="recordings", resolution=(1920, 1080)):
-        self.output_dir = Path(output_dir)
-        self.output_dir.mkdir(exist_ok=True)
-        
-        # Initialize PiCamera
-        self.picam = Picamera2()
-        self.width, self.height = resolution
-        
-        # Configure the camera
-        config = self.picam.create_preview_configuration(
-            main={"size": resolution},
-            lores={"size": (640, 480)},
-            display="lores"
-        )
-        self.picam.configure(config)
-        self.picam.start()
-        
-        # Allow camera to warm up
-        time.sleep(2)
-        
-        # Initialize recording state
-        self.is_recording = False
-        self.out = None
-        self.fps = 30
-
-    def start_recording(self):
-        if not self.is_recording:
-            # Generate filename with timestamp
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = self.output_dir / f"recording_{timestamp}.mp4"
+def test_camera():
+    """
+    Test program for Raspberry Pi camera using OpenCV
+    Displays live feed, captures images, and demonstrates basic features
+    """
+    # Initialize camera
+    # Use 0 for default camera (usually Pi Camera)
+    cap = cv2.VideoCapture(0)
+    
+    # Set camera properties
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    cap.set(cv2.CAP_PROP_FPS, 30)
+    
+    # Check if camera opened successfully
+    if not cap.isOpened():
+        print("Error: Could not open camera")
+        return
+    
+    print("Camera initialized successfully")
+    print("Press 'q' to quit")
+    print("Press 's' to save a photo")
+    print("Press 'g' to convert to grayscale")
+    
+    # Initialize variables
+    grayscale_mode = False
+    frame_count = 0
+    start_time = time.time()
+    
+    try:
+        while True:
+            # Capture frame-by-frame
+            ret, frame = cap.read()
             
-            # Initialize video writer
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            self.out = cv2.VideoWriter(
-                str(filename),
-                fourcc,
-                self.fps,
-                (self.width, self.height)
-            )
-            self.is_recording = True
-            print(f"Started recording: {filename}")
-            return True
-        return False
-
-    def stop_recording(self):
-        if self.is_recording:
-            self.is_recording = False
-            if self.out:
-                self.out.release()
-                self.out = None
-            print("Stopped recording")
-            return True
-        return False
-
-    def run(self):
-        try:
-            print("Recording controls:")
-            print("Press 'r' to start/stop recording")
-            print("Press 'q' to quit")
+            if not ret:
+                print("Error: Can't receive frame")
+                break
             
-            while True:
-                # Capture frame
-                frame = self.picam.capture_array()
+            # Calculate FPS
+            frame_count += 1
+            if frame_count % 30 == 0:
+                end_time = time.time()
+                fps = 30 / (end_time - start_time)
+                start_time = time.time()
+                print(f"FPS: {fps:.2f}")
+            
+            # Process frame
+            if grayscale_mode:
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                # Convert back to BGR for consistent display
+                frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+            
+            # Add timestamp to frame
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            cv2.putText(frame, timestamp, (10, 30), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            
+            # Display the frame
+            cv2.imshow('Raspberry Pi Camera Test', frame)
+            
+            # Handle keyboard input
+            key = cv2.waitKey(1) & 0xFF
+            
+            if key == ord('q'):
+                print("Quitting...")
+                break
+            elif key == ord('s'):
+                # Save image
+                filename = f"capture_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+                cv2.imwrite(filename, frame)
+                print(f"Saved image: {filename}")
+            elif key == ord('g'):
+                # Toggle grayscale mode
+                grayscale_mode = not grayscale_mode
+                print(f"Grayscale mode: {'On' if grayscale_mode else 'Off'}")
                 
-                # Convert frame from BGR to RGB (PiCamera uses BGR by default)
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-                # Add recording indicator
-                if self.is_recording:
-                    cv2.circle(frame, (30, 30), 10, (0, 0, 255), -1)
-                    cv2.putText(
-                        frame,
-                        "Recording...",
-                        (50, 40),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        1,
-                        (0, 0, 255),
-                        2
-                    )
-
-                # Display frame
-                cv2.imshow('PiCamera Recording', frame)
-
-                # Write frame if recording
-                if self.is_recording and self.out:
-                    self.out.write(frame)
-
-                # Handle keyboard input
-                key = cv2.waitKey(1) & 0xFF
-                if key == ord('q'):  # Quit
-                    break
-                elif key == ord('r'):  # Start/stop recording
-                    if self.is_recording:
-                        self.stop_recording()
-                    else:
-                        self.start_recording()
-
-        finally:
-            # Clean up
-            if self.out:
-                self.out.release()
-            self.picam.stop()
-            cv2.destroyAllWindows()
+    except KeyboardInterrupt:
+        print("\nProgram interrupted by user")
+    
+    finally:
+        # Release camera and close windows
+        cap.release()
+        cv2.destroyAllWindows()
+        print("Camera released and windows closed")
 
 if __name__ == "__main__":
-    recorder = PiVideoRecorder()
-    recorder.run()
+    test_camera()
