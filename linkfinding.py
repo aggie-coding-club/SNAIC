@@ -54,6 +54,6 @@ try:
 except Exception as e:
     print(f"Error during interaction: {str(e)}")
 
-print("Search complete.")
+print("Search complete")
 
 driver.quit()

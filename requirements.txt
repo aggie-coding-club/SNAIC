@@ -5,4 +5,3 @@ google-search-results
 gui
 kivy
 selenium
-csv
