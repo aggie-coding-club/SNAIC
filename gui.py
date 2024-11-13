@@ -62,7 +62,7 @@ class CamTab(Screen):
             frame = self.capture.capture_array()
         # print("Read frame: ", success)
 
-        buf1 = frame # cv2.rotate(frame, cv2.ROTATE_180)
+        buf1 = cv2.rotate(frame, cv2.ROTATE_180)
         buf = buf1.tostring()
         # On the PI, colorfmt="rgba"
         if platform == "win32":
