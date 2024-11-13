@@ -63,6 +63,8 @@ class CamTab(Screen):
         # print("Read frame: ", success)
 
         buf1 = cv2.rotate(frame, cv2.ROTATE_180)
+        if platform == "linux":
+            buf1 = cv2.flip(buf1, 1)
         buf = buf1.tostring()
         # On the PI, colorfmt="rgba"
         if platform == "win32":
