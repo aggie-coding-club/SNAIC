@@ -1,21 +1,17 @@
-"""
-Created on Wed Oct 30 17:15:34 2024
-
-@author: dconl
-"""
 import os
 import time
 import csv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options
 from urllib.parse import urlparse
 
 
 options = Options()
 options.add_argument("--headless")
+options.headless = True
 
-driver = webdriver.Chrome(options=options)
+driver = webdriver.Firefox(options=options)
 
 IMAGE_PATH = "imgs/bag.jpg"
 
@@ -30,6 +26,8 @@ try:
 
     links = driver.find_elements(By.XPATH, "//a[@href]")
     link_urls = [link.get_attribute("href") for link in links]
+
+    link_urls = [link for link in link_urls if "google" not in urlparse(link).netloc]
 
     # domain grouping
     links_by_domain = {}
