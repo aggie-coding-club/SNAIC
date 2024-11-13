@@ -22,12 +22,12 @@ def link_find():
     try:
         upload_box = driver.find_element(By.XPATH, '//input[@type="file"]')
         upload_box.send_keys(os.path.abspath(IMAGE_PATH))
-        time.sleep(4)
+        time.sleep(6)
 
         links = driver.find_elements(By.XPATH, "//a[@href]")
         link_urls = [link.get_attribute("href") for link in links]
 
-        link_urls = [link for link in link_urls if "google.com" not in urlparse(link).netloc]
+        link_urls = [link for link in link_urls if "amazon" in urlparse(link).netloc]
 
         # domain grouping
         links_by_domain = {}
@@ -55,3 +55,5 @@ def link_find():
     print("Search complete")
 
     driver.quit()
+
+link_find()
