@@ -6,6 +6,8 @@ import threading
 import cv2
 import math
 
+from linkfinding import link_find
+
 from sys import platform
 
 from kivymd.app import MDApp
@@ -118,6 +120,7 @@ class ProductsList(Screen):
         products = sample_get_products()
         loaded_products.notify_all()
 
+        link_find()
         # self.loading_active = False
 
         # self.ids.loading.active = False
