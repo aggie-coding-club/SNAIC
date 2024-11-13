@@ -55,5 +55,3 @@ def link_find():
     print("Search complete")
 
     driver.quit()
-
-link_find()
