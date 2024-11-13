@@ -81,11 +81,10 @@ class CamTab(Screen):
         if self.show_camera.collide_point(*args[1].pos) and not self.double_touch:
             x = math.floor(args[1].spos[0] * 640)
             y = math.floor(args[1].spos[1] * 480)
-            print(f"Image touched: x: {x}, y: {y}")
+            self.manager.current = "products"
+            # print(f"Image touched: x: {x}, y: {y}")
             
         self.double_touch = not self.double_touch
-
-            # TODO: Here is where the ML function would be called
 
         return True
 
