@@ -1,3 +1,10 @@
+# Dependancies:
+# 
+# python-opencv
+# kivy
+# kivymd
+# picamera2 (only on raspberry pi)
+
 import kivy
 kivy.require("2.3.0")
 
@@ -13,7 +20,8 @@ if platform == "linux":
 
 from kivymd.app import MDApp
 from kivymd.uix.list import (
-    OneLineListItem
+    TwoLineAvatarListItem,
+    ImageLeftWidget
 )
 
 from kivy.clock import Clock
@@ -63,6 +71,7 @@ class CamTab(Screen):
         # print("Read frame: ", success)
 
         buf1 = cv2.rotate(frame, cv2.ROTATE_180)
+        self.cur_frame = buf1
         buf = buf1.tostring()
         # On the PI, colorfmt="rgba"
         if platform == "win32":
@@ -81,7 +90,12 @@ class CamTab(Screen):
         if self.show_camera.collide_point(*args[1].pos) and not self.double_touch:
             x = math.floor(args[1].spos[0] * 640)
             y = math.floor(args[1].spos[1] * 480)
+
+            frame = cv2.flip(self.cur_frame, 0)
+            cv2.imwrite("frame.png", frame)
             self.manager.current = "products"
+
+            # self.manager.current = "products"
             # print(f"Image touched: x: {x}, y: {y}")
             
         self.double_touch = not self.double_touch
@@ -135,7 +149,14 @@ class ProductsList(Screen):
         self.loading_active = False
         # self.ids.loading.active = False
         for product in self.products:
-            list_item = OneLineListItem(text=f"{product}")
+            # list_item = OneLineListItem(text=f"{product}")
+            list_item = TwoLineAvatarListItem(
+                ImageLeftWidget(
+                    source="gui/unknown.png"
+                ),
+                text=f"{product}",
+                secondary_text="$<Price>"
+            )
 
             self.ids.container.add_widget(list_item)
 
