@@ -3,34 +3,24 @@ kivy.require("2.3.0")
 
 import time
 import threading
-import cv2
 import math
+import cv2
 
 from sys import platform
 
+if platform == "linux":
+    import picamera2
+
 from kivymd.app import MDApp
-from kivymd.uix.screen import MDScreen
-from kivymd.uix.button import MDTextButton
-from kivymd.uix.label import MDLabel
 from kivymd.uix.list import (
     OneLineListItem
 )
 
-from kivy.app import App
-from kivy.factory import Factory
-from kivy.core.window import Window
-from kivy.uix.widget import Widget
-from kivy.uix.anchorlayout import AnchorLayout
 from kivy.clock import Clock
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.uix.label import Label
-from kivy.uix.image import Image
-from kivy.uix.camera import Camera
-from kivy.config import Config
+from kivy.uix.screenmanager import Screen
 from kivy.base import Builder
 from kivy.graphics.texture import Texture
-from kivy.properties import ListProperty, NumericProperty, BooleanProperty
+from kivy.properties import BooleanProperty
 
 # https://stackoverflow.com/questions/37749378/integrate-opencv-webcam-into-a-kivy-user-interface
 
@@ -50,25 +40,39 @@ class CamTab(Screen):
 
     def on_enter(self, *args):
         # Setup capture
-        print("Camera available: ", camera_available())
-        self.capture = cv2.VideoCapture(0)
-        cv2.namedWindow("CV2 Image")
+        # print("Camera available: ", camera_available())
+
+        if platform == "win32":
+            self.capture = cv2.VideoCapture(0)
+            cv2.namedWindow("CV2 Image")
+        elif platform == "linux":
+            self.capture = picamera2.Picamera2()
+            self.capture.configure(
+                self.capture.create_video_configuration(main={"format": "RGB8888", "size": (640, 480)})
+            )
+            self.capture.start()
         Clock.schedule_interval(self.update, 1.0 / FRAMERATE)
 
         return super().on_enter(*args)
     
     def update(self, *args):
-        success, frame = self.capture.read()
+        if platform == "win32":
+            success, frame = self.capture.read()
+        elif platform == "linux":
+            frame = self.capture.capture_array()
         # print("Read frame: ", success)
 
-        buf1 = frame # cv2.rotate(frame, cv2.ROTATE_180)
+        buf1 = cv2.rotate(frame, cv2.ROTATE_180)
+        if platform == "linux":
+            buf1 = cv2.flip(buf1, 1)
         buf = buf1.tostring()
-        texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
         # On the PI, colorfmt="rgba"
         if platform == "win32":
+            texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
             texture1.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
         elif platform == "linux":
-            texture1.blit_buffer(buf, colorfmt="rgba", bufferfmt="ubyte")
+            texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
+            texture1.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
         else:
             print(f"unrecognized operating system: {platform}")
         # texture1 = cv2.rotate(texture1, cv2.ROTATE_180)
