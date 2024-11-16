@@ -87,7 +87,7 @@ with warnings.catch_warnings():
 # Upload image to folder, and change name below.
 # Also make sure to update np.array values to make sense with your image.
 
-rawImage = cv2.imread('coke.jpg')
+rawImage = cv2.imread('dogsample.jpg')
 image = cv2.resize(rawImage, (1800, 1200))
 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 plt.figure(figsize=(10,10))
@@ -97,7 +97,7 @@ plt.show()
 
 ort_session = onnxruntime.InferenceSession(onnx_model_path)
 
-sam.to(device='cuda')
+sam.to(device='cpu')
 predictor = SamPredictor(sam)
 predictor.set_image(image)
 image_embedding = predictor.get_image_embedding().cpu().numpy()
@@ -132,6 +132,35 @@ show_mask(masks, plt.gca())
 show_points(input_point, input_label, plt.gca())
 plt.axis('off')
 plt.show() 
+
+# After generating the mask with SAM
+masks, _, _ = ort_session.run(None, ort_inputs)
+masks = masks > predictor.model.mask_threshold
+
+# Resize the mask to match the image dimensions
+#resized_mask = cv2.resize(masks[0].astype(np.uint8), (image.shape[1], image.shape[0]))
+masks = np.squeeze(masks)
+# Create a new image with the same shape as the original, but filled with black
+blacked_out_image = np.zeros_like(image)
+
+# Use the resized mask to copy the masked area from the original image to the blacked out image
+blacked_out_image[masks == 1] = image[masks == 1]
+
+# Create a figure and axis
+fig, ax = plt.subplots(figsize=(10, 10))
+
+# Display the blacked out image
+ax.imshow(blacked_out_image)
+
+# Set the background color (outside the mask) to a specific color
+# You can change 'lightgray' to any color you prefer
+ax.set_facecolor('lightgray')
+
+# Remove axis labels and ticks
+ax.axis('off')
+
+# Show the plot
+plt.show()
 # Uses two points -- edit this for each image.
 input_point = np.array([[350, 300], [350, 200]])
 input_label = np.array([1, 1])
@@ -162,6 +191,34 @@ show_points(input_point, input_label, plt.gca())
 plt.axis('off')
 plt.show() 
 
+# After generating the mask with SAM
+masks, _, _ = ort_session.run(None, ort_inputs)
+masks = masks > predictor.model.mask_threshold
+
+# Resize the mask to match the image dimensions
+#resized_mask = cv2.resize(masks[0].astype(np.uint8), (image.shape[1], image.shape[0]))
+masks = np.squeeze(masks)
+# Create a new image with the same shape as the original, but filled with black
+blacked_out_image = np.zeros_like(image)
+
+# Use the resized mask to copy the masked area from the original image to the blacked out image
+blacked_out_image[masks == 1] = image[masks == 1]
+
+# Create a figure and axis
+fig, ax = plt.subplots(figsize=(10, 10))
+
+# Display the blacked out image
+ax.imshow(blacked_out_image)
+
+# Set the background color (outside the mask) to a specific color
+# You can change 'lightgray' to any color you prefer
+ax.set_facecolor('lightgray')
+
+# Remove axis labels and ticks
+ax.axis('off')
+
+# Show the plot
+plt.show()
 # Creates a box, and uses a point in the box -- edit this for each image.
 #                        (x1,y1,x2,y2)
 input_box = np.array([425, 600, 700, 875])
@@ -191,8 +248,42 @@ masks, _, _ = ort_session.run(None, ort_inputs)
 masks = masks > predictor.model.mask_threshold
 plt.figure(figsize=(10, 10))
 plt.imshow(image)
+
+#this part actually makes the mask visible
 show_mask(masks[0], plt.gca())
+
 show_box(input_box, plt.gca())
 show_points(input_point, input_label, plt.gca())
 plt.axis('off')
+plt.show()
+
+print(type(masks))
+
+# After generating the mask with SAM
+masks, _, _ = ort_session.run(None, ort_inputs)
+masks = masks > predictor.model.mask_threshold
+
+# Resize the mask to match the image dimensions
+#resized_mask = cv2.resize(masks[0].astype(np.uint8), (image.shape[1], image.shape[0]))
+masks = np.squeeze(masks)
+# Create a new image with the same shape as the original, but filled with black
+blacked_out_image = np.zeros_like(image)
+
+# Use the resized mask to copy the masked area from the original image to the blacked out image
+blacked_out_image[masks == 1] = image[masks == 1]
+
+# Create a figure and axis
+fig, ax = plt.subplots(figsize=(10, 10))
+
+# Display the blacked out image
+ax.imshow(blacked_out_image)
+
+# Set the background color (outside the mask) to a specific color
+# You can change 'lightgray' to any color you prefer
+ax.set_facecolor('lightgray')
+
+# Remove axis labels and ticks
+ax.axis('off')
+
+# Show the plot
 plt.show()
