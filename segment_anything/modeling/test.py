@@ -29,33 +29,22 @@ def show_box(box, ax):
     ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor='green', facecolor=(0,0,0,0), lw=2)) 
 
 def show_blackout_mask(ort_inputs, image):
-    # After generating the mask with SAM
+    # generate general mask
     masks, _, _ = ort_session.run(None, ort_inputs)
     masks = masks > predictor.model.mask_threshold
 
     # Resize the mask to match the image dimensions
-    #resized_mask = cv2.resize(masks[0].astype(np.uint8), (image.shape[1], image.shape[0]))
     masks = np.squeeze(masks)
+    
     # Create a new image with the same shape as the original, but filled with black
     blacked_out_image = np.zeros_like(image)
 
-    # Use the resized mask to copy the masked area from the original image to the blacked out image
+    # Use the new mask to copy the masked area from the original image to the blacked out image
     blacked_out_image[masks == 1] = image[masks == 1]
 
-    # Create a figure and axis
     fig, ax = plt.subplots(figsize=(10, 10))
-
-    # Display the blacked out image
     ax.imshow(blacked_out_image)
-
-    # Set the background color (outside the mask) to a specific color
-    # You can change 'lightgray' to any color you prefer
-    ax.set_facecolor('lightgray')
-
-    # Remove axis labels and ticks
     ax.axis('off')
-
-    # Show the plot
     plt.show()
 
 
