@@ -29,22 +29,37 @@ def show_box(box, ax):
     ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor='green', facecolor=(0,0,0,0), lw=2)) 
 
 def show_blackout_mask(ort_inputs, image):
+    # Your existing code for generating the mask
     # generate general mask
     masks, _, _ = ort_session.run(None, ort_inputs)
     masks = masks > predictor.model.mask_threshold
 
     # Resize the mask to match the image dimensions
     masks = np.squeeze(masks)
-    
-    # Create a new image with the same shape as the original, but filled with black
-    blacked_out_image = np.zeros_like(image)
 
-    # Use the new mask to copy the masked area from the original image to the blacked out image
-    blacked_out_image[masks == 1] = image[masks == 1]
+    # For transparent background:
+    transparent_image = np.zeros_like(image, dtype=np.uint8)
+    transparent_image[..., 2] = 255  # Set alpha channel to fully opaque
+    transparent_image[masks == 1] = image[masks == 1]
 
-    fig, ax = plt.subplots(figsize=(10, 10))
-    ax.imshow(blacked_out_image)
-    ax.axis('off')
+    # For green background:
+    green_image = np.zeros_like(image)
+    green_image[..., 1] = 255  # Set green channel to maximum
+    green_image[masks == 1] = image[masks == 1]
+
+    # Display the images
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
+
+    # Display transparent background image
+    ax1.imshow(transparent_image)
+    ax1.set_title("Transparent Background")
+    ax1.axis('off')
+
+    # Display green background image
+    ax2.imshow(green_image)
+    ax2.set_title("Green Background")
+    ax2.axis('off')
+
     plt.show()
 
 
