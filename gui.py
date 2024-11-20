@@ -25,9 +25,15 @@ from kivymd.uix.list import (
 )
 
 from kivy.clock import Clock
-from kivy.uix.screenmanager import Screen
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.label import Label
+from kivy.uix.image import Image
+from kivy.uix.camera import Camera
+from kivy.config import Config
 from kivy.base import Builder
 from kivy.graphics.texture import Texture
+from kivy.properties import BooleanProperty
 from kivy.properties import BooleanProperty
 
 # https://stackoverflow.com/questions/37749378/integrate-opencv-webcam-into-a-kivy-user-interface
@@ -41,6 +47,9 @@ def camera_available():
     return available
 
 FRAMERATE = 33.0
+
+last_x = 0
+last_y = 0
 
 # Screen that shows the camera feed + scan button
 class CamTab(Screen):
@@ -56,7 +65,7 @@ class CamTab(Screen):
         elif platform == "linux":
             self.capture = picamera2.Picamera2()
             self.capture.configure(
-                self.capture.create_video_configuration(main={"format": "RGB8888", "size": (640, 480)})
+                self.capture.create_video_configuration(main={"format": "RGB888", "size": (640, 480)})
             )
             self.capture.start()
         Clock.schedule_interval(self.update, 1.0 / FRAMERATE)
@@ -76,6 +85,8 @@ class CamTab(Screen):
         # On the PI, colorfmt="rgba"
         if platform == "win32":
             texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
+            texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
+            texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
             texture1.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
         elif platform == "linux":
             texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
@@ -86,10 +97,14 @@ class CamTab(Screen):
         self.show_camera.texture = texture1
 
     def image_press(self, *args):
+        global last_x, last_y
+
         # TODO: See if the bottom of the image should report 0.1 or 0
         if self.show_camera.collide_point(*args[1].pos) and not self.double_touch:
             x = math.floor(args[1].spos[0] * 640)
             y = math.floor(args[1].spos[1] * 480)
+            last_x = x
+            last_y = y
 
             frame = cv2.flip(self.cur_frame, 0)
             cv2.imwrite("frame.png", frame)
@@ -119,46 +134,46 @@ loaded_products = threading.Condition()
 class ProductsList(Screen):
     loading_active = BooleanProperty(True)
     loading_thread = None
-    products = [
-        "Product 1", 
-        "Product 2", 
-        "Product 3", 
-        "Product 4", 
-        "Product 5", 
-        "Product 6"
-    ]
+    products = []
+    # products = [
+    #     "Product 1", 
+    #     "Product 2", 
+    #     "Product 3", 
+    #     "Product 4", 
+    #     "Product 5", 
+    #     "Product 6"
+    # ]
 
-    def load_products(self):
-        loaded_products.acquire()
-        products = sample_get_products()
-        loaded_products.notify_all()
-
-        # self.loading_active = False
-
-        # self.ids.loading.active = False
-        # for product in products:
-        #     list_item = OneLineListItem(text=f"{product}")
-
-        #     self.ids.container.add_widget(list_item)
-
-        print("done")
-
-    def on_enter(self, *args):
-        # self.loading_thread = threading.Thread(target=self.load_products)
-
-        self.loading_active = False
-        # self.ids.loading.active = False
+    def populate_products_list(self):
         for product in self.products:
-            # list_item = OneLineListItem(text=f"{product}")
             list_item = TwoLineAvatarListItem(
                 ImageLeftWidget(
                     source="gui/unknown.png"
                 ),
                 text=f"{product}",
-                secondary_text="$<Price>"
+                secondary_text="price"
             )
 
             self.ids.container.add_widget(list_item)
+
+    def update(self, *args):
+        if self.loading_thread is not None and not self.loading_thread.is_alive():
+            print("Done loading")
+            self.loading_active = False
+            self.loading_thread = None
+            self.ids.loading.active = False
+            self.populate_products_list()
+
+    def load_products(self):
+        time.sleep(5)
+        self.products = ["Product 1", "Hello World"]
+        return 
+
+    def on_enter(self, *args):
+        self.loading_thread = threading.Thread(target=self.load_products)
+        self.loading_thread.start()
+
+        Clock.schedule_interval(self.update, 1 / 60)
 
         return super().on_enter(*args)
 
