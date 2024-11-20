@@ -151,7 +151,7 @@ class ProductsList(Screen):
         # self.loading_active = False
 
 
-            self.ids.container.add_widget(list_item)
+        self.ids.container.add_widget(list_item)
 
     def update(self, *args):
         # Wait for product loading thread to finish and populate 
