@@ -13,6 +13,8 @@ import threading
 import math
 import cv2
 
+from linkfinding import link_find
+
 from sys import platform
 
 if platform == "linux":
@@ -73,7 +75,11 @@ class CamTab(Screen):
             frame = self.capture.capture_array()
 
         buf1 = cv2.rotate(frame, cv2.ROTATE_180)
+
         self.cur_frame = buf1
+
+        if platform == "linux":
+            buf1 = cv2.flip(buf1, 1)
         buf = buf1.tostring()
 
         # On the PI, colorfmt="rgba"
@@ -135,6 +141,15 @@ class ProductsList(Screen):
                 text=f"{product}",
                 secondary_text="price"
             )
+
+    def load_products(self):
+        loaded_products.acquire()
+        products = sample_get_products()
+        loaded_products.notify_all()
+
+        link_find()
+        # self.loading_active = False
+
 
             self.ids.container.add_widget(list_item)
 

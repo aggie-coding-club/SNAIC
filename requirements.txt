@@ -1,0 +1,7 @@
+requests
+python-dotenv
+serpapi
+google-search-results
+gui
+kivy
+selenium
