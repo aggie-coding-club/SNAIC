@@ -10,8 +10,9 @@ def link_find():
     options = Options()
     options.add_argument("--headless")
     options.headless = True
-
-    driver = webdriver.Firefox(options=options)
+    
+    service = Service('geckodriver')
+    driver = webdriver.Firefox(service=service)
 
     IMAGE_PATH = "imgs/bag.jpg"
 
