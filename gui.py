@@ -1,39 +1,37 @@
+# Dependencies:
+# 
+# python-opencv
+# kivy
+# kivymd
+# picamera2 (only on raspberry pi)
+
 import kivy
 kivy.require("2.3.0")
 
 import time
 import threading
-import cv2
 import math
-import csv
-
+import cv2
 from linkfinding import link_find
 
 from sys import platform
 
+if platform == "linux":
+    import picamera2
+
 from kivymd.app import MDApp
-from kivymd.uix.screen import MDScreen
-from kivymd.uix.button import MDTextButton
-from kivymd.uix.label import MDLabel
 from kivymd.uix.list import (
-    OneLineListItem
+    TwoLineAvatarListItem,
+    ImageLeftWidget
 )
 
-from kivy.app import App
-from kivy.factory import Factory
-from kivy.core.window import Window
-from kivy.uix.widget import Widget
-from kivy.uix.anchorlayout import AnchorLayout
 from kivy.clock import Clock
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.uix.label import Label
-from kivy.uix.image import Image
-from kivy.uix.camera import Camera
+from kivy.uix.screenmanager import Screen
 from kivy.config import Config
 from kivy.base import Builder
 from kivy.graphics.texture import Texture
-from kivy.properties import ListProperty, NumericProperty, BooleanProperty
+from kivy.properties import BooleanProperty
+from kivy.properties import BooleanProperty
 
 # https://stackoverflow.com/questions/37749378/integrate-opencv-webcam-into-a-kivy-user-interface
 
@@ -47,46 +45,69 @@ def camera_available():
 
 FRAMERATE = 33.0
 
+last_x = 0
+last_y = 0
+
 # Screen that shows the camera feed + scan button
 class CamTab(Screen):
     double_touch = False
 
     def on_enter(self, *args):
         # Setup capture
-        print("Camera available: ", camera_available())
-        self.capture = cv2.VideoCapture(0)
-        cv2.namedWindow("CV2 Image")
+        if platform == "win32":
+            self.capture = cv2.VideoCapture(0)
+            cv2.namedWindow("CV2 Image")
+        elif platform == "linux":
+            self.capture = picamera2.Picamera2()
+            self.capture.configure(
+                self.capture.create_video_configuration(main={"format": "RGB888", "size": (640, 480)})
+            )
+            self.capture.start()
         Clock.schedule_interval(self.update, 1.0 / FRAMERATE)
 
         return super().on_enter(*args)
     
     def update(self, *args):
-        success, frame = self.capture.read()
-        # print("Read frame: ", success)
+        if platform == "win32":
+            _, frame = self.capture.read()
+        elif platform == "linux":
+            frame = self.capture.capture_array()
 
-        buf1 = frame # cv2.rotate(frame, cv2.ROTATE_180)
+        buf1 = cv2.rotate(frame, cv2.ROTATE_180)
+
+        self.cur_frame = buf1
+
+        if platform == "linux":
+            buf1 = cv2.flip(buf1, 1)
         buf = buf1.tostring()
-        texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
+
         # On the PI, colorfmt="rgba"
         if platform == "win32":
+            texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
+            texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
+            texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
             texture1.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
         elif platform == "linux":
-            texture1.blit_buffer(buf, colorfmt="rgba", bufferfmt="ubyte")
+            texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
+            texture1.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
         else:
             print(f"unrecognized operating system: {platform}")
-        # texture1 = cv2.rotate(texture1, cv2.ROTATE_180)
         self.show_camera.texture = texture1
 
     def image_press(self, *args):
-        # TODO: See if the bottom of the image should report 0.1 or 0
+        global last_x, last_y
+
         if self.show_camera.collide_point(*args[1].pos) and not self.double_touch:
             x = math.floor(args[1].spos[0] * 640)
             y = math.floor(args[1].spos[1] * 480)
-            print(f"Image touched: x: {x}, y: {y}")
+            last_x = x
+            last_y = y
+
+            frame = cv2.flip(self.cur_frame, 0)
+            cv2.imwrite("frame.png", frame)
+            self.manager.current = "products"
             
         self.double_touch = not self.double_touch
-
-            # TODO: Here is where the ML function would be called
 
         return True
 
@@ -105,6 +126,17 @@ class ProductsList(Screen):
     loading_thread = None
     products = []
 
+    def populate_products_list(self):
+        for product in self.products:
+            list_item = TwoLineAvatarListItem(
+                # TODO: Change this to the relevant avatar
+                ImageLeftWidget(
+                    source="gui/unknown.png"
+                ),
+                text=f"{product}",
+                secondary_text="price"
+            )
+
     def load_products(self):
         link_find()
         loaded_products.acquire()
@@ -115,13 +147,16 @@ class ProductsList(Screen):
         
         # self.loading_active = False
 
-        # self.ids.loading.active = False
-        # for product in products:
-        #     list_item = OneLineListItem(text=f"{product}")
 
-        #     self.ids.container.add_widget(list_item)
+        self.ids.container.add_widget(list_item)
 
-        print("done")
+    def update(self, *args):
+        # Wait for product loading thread to finish and populate 
+        if self.loading_thread is not None and not self.loading_thread.is_alive():
+            self.loading_active = False
+            self.loading_thread = None
+            self.ids.loading.active = False
+            self.populate_products_list()
 
     def update_product_list(self):
         self.ids.container.clear_widgets()
@@ -140,8 +175,20 @@ class ProductsList(Screen):
         # self.ids.loading.active = False
         for product in self.products:
             list_item = OneLineListItem(text=f"{product}")
+            
+    def load_products(self):
+        # TODO: Call ML function here
+        # Make sure that item preview images go into gui folder
+        print(f"Looking for products at ({last_x}, {last_y})")
+        time.sleep(5)
+        self.products = ["Product 1", "Hello World"]
 
-            self.ids.container.add_widget(list_item)
+    def on_enter(self, *args):
+        # Start loading thread and schedule update
+        self.loading_thread = threading.Thread(target=self.load_products)
+        self.loading_thread.start()
+
+        Clock.schedule_interval(self.update, 1 / 60)
 
         return super().on_enter(*args)
 
