@@ -66,28 +66,26 @@ ScreenManager:
                 app.root.current = "products"
                 root.manager.transition.direction = "left"
     
-    
 
 <ProductsList@Screen>:
     name: "products"
     container: container
     loading: loading
 
-    MDSpinner:
-        size_hint: None, None
-        size: dp(46), dp(46)
-        pos_hint: {"center_x": 0.5, "center_y": 0.5}
-        active: root.loading_active
-        id: loading
+    BoxLayout:
+        orientation: "vertical"
 
-    # MDIcon:
-    #     id: loading
-    #     icon: "loading"
-    #     pos_hint: {"center_x": .5, "center_y": .5}
+        MDSpinner:
+            size_hint: None, None
+            size: dp(46), dp(46)
+            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+            active: root.loading_active
+            id: loading
 
-    MDScrollView:
-        MDList:
-            id: container
+        MDScrollView:
+            MDList:
+                id: container
+
 
 # <-LabelWithBorder@Label>:
 #     border_width: 0

@@ -5,6 +5,7 @@ import time
 import threading
 import cv2
 import math
+import csv
 
 from linkfinding import link_find
 
@@ -89,38 +90,29 @@ class CamTab(Screen):
 
         return True
 
-def sample_get_products():
-    time.sleep(1)
-
-    return [
-        "Product 1", 
-        "Product 2", 
-        "Product 3", 
-        "Product 4", 
-        "Product 5", 
-        "Product 6" 
-    ]
+def sample_get_products(csv_file):
+    products = []
+    with open(csv_file, 'r') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            products.append({'name': row['Domain'], 'link': row['Link']})
+    return products
 
 loaded_products = threading.Condition()
 
 class ProductsList(Screen):
     loading_active = BooleanProperty(True)
     loading_thread = None
-    products = [
-        "Product 1", 
-        "Product 2", 
-        "Product 3", 
-        "Product 4", 
-        "Product 5", 
-        "Product 6"
-    ]
+    products = []
 
     def load_products(self):
+        link_find()
         loaded_products.acquire()
-        products = sample_get_products()
+        self.products = sample_get_products('links.csv')
+        self.update_product_list()
         loaded_products.notify_all()
 
-        link_find()
+        
         # self.loading_active = False
 
         # self.ids.loading.active = False
@@ -131,9 +123,19 @@ class ProductsList(Screen):
 
         print("done")
 
+    def update_product_list(self):
+        self.ids.container.clear_widgets()
+        
+        for product in self.products:
+            list_item = OneLineListItem(
+                text=product['link']
+            )
+            self.ids.container.add_widget(list_item)
+
     def on_enter(self, *args):
         # self.loading_thread = threading.Thread(target=self.load_products)
 
+        self.load_products()
         self.loading_active = False
         # self.ids.loading.active = False
         for product in self.products:
