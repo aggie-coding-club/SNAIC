@@ -19,7 +19,7 @@ ScreenManager:
         #     halign: "center"
 
         MDRaisedButton:
-            text: "Scan"
+            text: "Start: Click again to scan"
             size_hint: 1, 0.25
             font_size: self.width / 20
             id: button
@@ -58,15 +58,17 @@ ScreenManager:
             size: (640, 480)
             on_touch_down: root.image_press(*args)
             fit_mode: "fill"
-        Button:
-            text: "Scan Product"
-            size_hint: .2, .1
-            pos_hint: {"center_x": .5}
-            on_release:
-                app.root.current = "products"
-                root.manager.transition.direction = "left"
-    
-    
+
+            # AnchorLayout:
+            #     anchor_x: 'center'
+            #     anchor_y: 'bottom'
+
+            #     Button:
+            #         text: "Scan Product"
+            #         pos_hint: {"center_x": .5}
+            #         on_release:
+            #             app.root.current = "products"
+            #             root.manager.transition.direction = "left"
 
 <ProductsList@Screen>:
     name: "products"
