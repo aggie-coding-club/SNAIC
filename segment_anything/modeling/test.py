@@ -119,7 +119,7 @@ with warnings.catch_warnings():
 # Upload image to folder, and change name below.
 # Also make sure to update np.array values to make sense with your image.
 
-rawImage = cv2.imread('truck.jpg')
+rawImage = cv2.imread('scooter.jpg')
 image = cv2.resize(rawImage, (1800, 1200))
 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 plt.figure(figsize=(10,10))
@@ -135,7 +135,7 @@ predictor.set_image(image)
 image_embedding = predictor.get_image_embedding().cpu().numpy()
 image_embedding.shape
 # Uses one point value -- edit this for each image.
-input_point = np.array([[350, 300]])
+input_point = np.array([[800, 690]])
 input_label = np.array([1])
 
 onnx_coord = np.concatenate([input_point, np.array([[0.0, 0.0]])], axis=0)[None, :, :]
@@ -168,7 +168,7 @@ plt.show()
 show_blackout_mask(ort_inputs, image)
 
 # Uses two points -- edit this for each image.
-input_point = np.array([[350, 300], [350, 200]])
+input_point = np.array([[578, 752], [1030, 659]])
 input_label = np.array([1, 1])
 
 # Use the mask output from the previous run. It is already in the correct form for input to the ONNX model.
