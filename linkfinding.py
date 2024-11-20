@@ -13,7 +13,7 @@ def link_find():
 
     driver = webdriver.Firefox(options=options)
 
-    IMAGE_PATH = "imgs/bag.jpg"
+    IMAGE_PATH = "imgs/car.png"
 
     driver.get("https://lens.google.com/")
 
@@ -27,7 +27,7 @@ def link_find():
         links = driver.find_elements(By.XPATH, "//a[@href]")
         link_urls = [link.get_attribute("href") for link in links]
 
-        link_urls = [link for link in link_urls if "amazon" in urlparse(link).netloc]
+        #link_urls = [link for link in link_urls if "amazon" in urlparse(link).netloc]
 
         # domain grouping
         links_by_domain = {}
@@ -55,3 +55,5 @@ def link_find():
     print("Search complete")
 
     driver.quit()
+
+link_find()
