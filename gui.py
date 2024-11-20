@@ -1,4 +1,4 @@
-# Dependancies:
+# Dependencies:
 # 
 # python-opencv
 # kivy
@@ -25,11 +25,7 @@ from kivymd.uix.list import (
 )
 
 from kivy.clock import Clock
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.uix.label import Label
-from kivy.uix.image import Image
-from kivy.uix.camera import Camera
+from kivy.uix.screenmanager import Screen
 from kivy.config import Config
 from kivy.base import Builder
 from kivy.graphics.texture import Texture
@@ -57,8 +53,6 @@ class CamTab(Screen):
 
     def on_enter(self, *args):
         # Setup capture
-        # print("Camera available: ", camera_available())
-
         if platform == "win32":
             self.capture = cv2.VideoCapture(0)
             cv2.namedWindow("CV2 Image")
@@ -74,14 +68,14 @@ class CamTab(Screen):
     
     def update(self, *args):
         if platform == "win32":
-            success, frame = self.capture.read()
+            _, frame = self.capture.read()
         elif platform == "linux":
             frame = self.capture.capture_array()
-        # print("Read frame: ", success)
 
         buf1 = cv2.rotate(frame, cv2.ROTATE_180)
         self.cur_frame = buf1
         buf = buf1.tostring()
+
         # On the PI, colorfmt="rgba"
         if platform == "win32":
             texture1 = Texture.create(size=(640, 480), colorfmt="bgr")
@@ -93,13 +87,11 @@ class CamTab(Screen):
             texture1.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
         else:
             print(f"unrecognized operating system: {platform}")
-        # texture1 = cv2.rotate(texture1, cv2.ROTATE_180)
         self.show_camera.texture = texture1
 
     def image_press(self, *args):
         global last_x, last_y
 
-        # TODO: See if the bottom of the image should report 0.1 or 0
         if self.show_camera.collide_point(*args[1].pos) and not self.double_touch:
             x = math.floor(args[1].spos[0] * 640)
             y = math.floor(args[1].spos[1] * 480)
@@ -109,9 +101,6 @@ class CamTab(Screen):
             frame = cv2.flip(self.cur_frame, 0)
             cv2.imwrite("frame.png", frame)
             self.manager.current = "products"
-
-            # self.manager.current = "products"
-            # print(f"Image touched: x: {x}, y: {y}")
             
         self.double_touch = not self.double_touch
 
@@ -135,18 +124,11 @@ class ProductsList(Screen):
     loading_active = BooleanProperty(True)
     loading_thread = None
     products = []
-    # products = [
-    #     "Product 1", 
-    #     "Product 2", 
-    #     "Product 3", 
-    #     "Product 4", 
-    #     "Product 5", 
-    #     "Product 6"
-    # ]
 
     def populate_products_list(self):
         for product in self.products:
             list_item = TwoLineAvatarListItem(
+                # TODO: Change this to the relevant avatar
                 ImageLeftWidget(
                     source="gui/unknown.png"
                 ),
@@ -157,19 +139,22 @@ class ProductsList(Screen):
             self.ids.container.add_widget(list_item)
 
     def update(self, *args):
+        # Wait for product loading thread to finish and populate 
         if self.loading_thread is not None and not self.loading_thread.is_alive():
-            print("Done loading")
             self.loading_active = False
             self.loading_thread = None
             self.ids.loading.active = False
             self.populate_products_list()
 
     def load_products(self):
+        # TODO: Call ML function here
+        # Make sure that item preview images go into gui folder
+        print(f"Looking for products at ({last_x}, {last_y})")
         time.sleep(5)
         self.products = ["Product 1", "Hello World"]
-        return 
 
     def on_enter(self, *args):
+        # Start loading thread and schedule update
         self.loading_thread = threading.Thread(target=self.load_products)
         self.loading_thread.start()
 
